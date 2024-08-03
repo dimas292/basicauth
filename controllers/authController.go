@@ -3,9 +3,10 @@ package controllers
 import (
 	"basic-auth/database"
 	"basic-auth/models"
-
+	"time"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func Register(c *fiber.Ctx) error {
@@ -26,7 +27,7 @@ func Register(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-func Login(c *fiber.Ctx)error {
+func Login(c *fiber.Ctx) error {
 	var data map[string]string
 
 	if err := c.BodyParser(&data); err != nil {
@@ -40,7 +41,7 @@ func Login(c *fiber.Ctx)error {
 	if user.Id == 0 {
 		c.Status(fiber.StatusNotFound)
 		return c.JSON(fiber.Map{
-			"message" : "id tidak ditemukan",
+			"message": "id tidak ditemukan",
 		})
 	}
 
@@ -49,10 +50,18 @@ func Login(c *fiber.Ctx)error {
 	if err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"message" : "password incorrect",
+			"message": "password incorrect",
 		})
 	}
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.Id,
+		"exp": time.Now().Add(time.Hour * 72).Unix(), // Token valid for 72 hours
+	})
 
-	return c.JSON(user)
+	token, err := claims.SignedString([]byte("hello"))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Could not login"})
+	}
+
+	return c.JSON(fiber.Map{"token": token})
 }
-
