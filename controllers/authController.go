@@ -60,6 +60,7 @@ func Login(c *fiber.Ctx) error {
 	})
 
 	token, err := claims.SignedString([]byte(SecretKey))
+
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Could not login"})
 	}
@@ -76,4 +77,30 @@ func Login(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message" : "success",
 	})
+}
+
+func User(c *fiber.Ctx) error {
+	cookie := c.Cookies("jwt") // Corrected cookie retrieval
+
+	token, err := jwt.ParseWithClaims(cookie, &jwt.MapClaims{}, func(t *jwt.Token) (interface{}, error) {
+		return []byte(SecretKey), nil
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "unauthenticated"})
+	}
+
+	claims, ok := token.Claims.(*jwt.MapClaims)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "unauthenticated"})
+	}
+
+	var user models.User
+	database.DB.Where("id = ?", (*claims)["sub"]).First(&user) // Fixed the query syntax
+
+	if user.Id == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "user not found"})
+	}
+
+	return c.JSON(user)
 }

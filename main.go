@@ -13,7 +13,10 @@ func main() {
 
 	app := fiber.New()
 
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowCredentials: false,
+		AllowOrigins: "*",
+	}))
 
 	routes.SetUp(app)
 
