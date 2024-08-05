@@ -9,7 +9,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
+
 const SecretKey = "secret"
+
 func Register(c *fiber.Ctx) error {
 	db := database.DB
 	var data map[string]string
@@ -66,16 +68,16 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	cookie := fiber.Cookie{
-		Name: "jwt",
-		Value: token,
-		Expires: time.Now().Add(time.Hour * 72),
+		Name:     "jwt",
+		Value:    token,
+		Expires:  time.Now().Add(time.Hour * 72),
 		HTTPOnly: true,
 	}
-	// context to save token on cookie 
+	// context to save token on cookie
 	c.Cookie(&cookie)
 
 	return c.JSON(fiber.Map{
-		"message" : "success",
+		"message": "success",
 	})
 }
 
@@ -103,4 +105,20 @@ func User(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(user)
+}
+
+func Logout(c *fiber.Ctx) error {
+
+	cookie := fiber.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HTTPOnly: true,
+	}
+
+	c.Cookie(&cookie)
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
 }
