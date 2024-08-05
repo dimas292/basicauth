@@ -4,9 +4,10 @@ import (
 	"basic-auth/database"
 	"basic-auth/models"
 	"time"
+
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/crypto/bcrypt"
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Register(c *fiber.Ctx) error {
