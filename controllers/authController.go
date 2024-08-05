@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
-
+const SecretKey = "secret"
 func Register(c *fiber.Ctx) error {
 	db := database.DB
 	var data map[string]string
@@ -59,7 +59,7 @@ func Login(c *fiber.Ctx) error {
 		"exp": time.Now().Add(time.Hour * 72).Unix(), // Token valid for 72 hours
 	})
 
-	token, err := claims.SignedString([]byte("hello"))
+	token, err := claims.SignedString([]byte(SecretKey))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Could not login"})
 	}
